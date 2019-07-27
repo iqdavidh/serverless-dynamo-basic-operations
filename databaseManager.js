@@ -44,17 +44,38 @@ module.exports.deleteItem = itemId => {
   return dynamo.delete(params).promise();
 };
 
-module.exports.updateItem = (itemId, paramsName, paramsValue) => {
+
+
+module.exports.updateItem = (itemId, listaParams) => {
+
+  let paramsString='';
+  let valuesObject={};
+  let paramIndex=0;
+
+  Object.keys(listaParams).forEach(k=>{
+
+    paramIndex++;
+    let p=':param'+paramIndex.toString();
+
+    paramsString += paramsString===''?'':', ';
+    paramsString +=`${k} = ${p}`;
+
+    valuesObject[p]=listaParams[k];
+
+
+  });
+
+  paramsString='set ' + paramsString;
+
+
   const params = {
     TableName: TABLE_NAME,
     Key: {
       itemId
     },
     ConditionExpression: 'attribute_exists(itemId)',
-    UpdateExpression: 'set ' + paramsName + ' = :v',
-    ExpressionAttributeValues: {
-      ':v': paramsValue
-    },
+    UpdateExpression:  paramsString,
+    ExpressionAttributeValues: valuesObject,
     ReturnValues: 'ALL_NEW'
   };
 
